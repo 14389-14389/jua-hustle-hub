@@ -162,9 +162,14 @@ const Jobs = () => {
                   <span className="text-sm text-muted-foreground">
                     {job.applicants} applicants
                   </span>
-                  <Button className="shadow-glow">
-                    Apply Now
-                  </Button>
+                <Button 
+                  onClick={() => handleApply(job.id)}
+                  className="shadow-glow"
+                  disabled={appliedJobs.some(app => app.id === job.id)}
+                >
+                  <Send className="h-3 w-3 mr-1" />
+                  {appliedJobs.some(app => app.id === job.id) ? 'Applied' : 'Apply'}
+                </Button>
                 </div>
               </div>
             </CardHeader>

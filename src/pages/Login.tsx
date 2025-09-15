@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Mail, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,26 +14,34 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await login(email, password);
       toast({
         title: "Login successful!",
         description: "Welcome back to JuaHustle",
       });
       
-      // Simulate role-based redirect
+      // Navigate based on user role - will be handled by auth context
       if (email.includes("client")) {
         navigate("/client-dashboard");
       } else {
         navigate("/hustler-dashboard");
       }
-    }, 1000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Invalid credentials. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

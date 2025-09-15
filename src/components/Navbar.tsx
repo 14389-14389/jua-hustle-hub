@@ -1,22 +1,55 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sun, Moon, Briefcase, User } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
+import { Menu, X, Sun, Moon, Briefcase, User, LogOut, Settings } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
+import { useAuth } from "@/contexts/AuthContext";
+import NotificationPanel from "@/components/NotificationPanel";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const getNavigationItems = () => {
+    if (!user) {
+      return [
+        { path: "/", label: "Home" },
+        { path: "/jobs", label: "Find Jobs" },
+      ];
+    }
+    
+    if (user.role === 'client') {
+      return [
+        { path: "/", label: "Home" },
+        { path: "/client-dashboard", label: "Dashboard" },
+        { path: "/jobs", label: "Browse Hustlers" },
+      ];
+    } else {
+      return [
+        { path: "/", label: "Home" },
+        { path: "/hustler-dashboard", label: "Dashboard" },
+        { path: "/jobs", label: "Find Jobs" },
+      ];
+    }
+  };
 
   const isActive = (path: string) => location.pathname === path;
-
-  const navLinks = [
-    { path: "/", label: "Home" },
-    { path: "/jobs", label: "Browse Jobs" },
-    { path: "/client-dashboard", label: "Client Dashboard" },
-    { path: "/hustler-dashboard", label: "Hustler Dashboard" },
-  ];
+  const navLinks = getNavigationItems();
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -62,6 +95,10 @@ const Navbar = () => {
             </Link>
           </div>
           <nav className="flex items-center space-x-2">
+            {/* Notifications (if logged in) */}
+            {user && <NotificationPanel />}
+
+            {/* Theme Toggle */}
             <Button
               variant="ghost"
               size="icon"
@@ -71,17 +108,46 @@ const Navbar = () => {
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/login">Login</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link to="/signup">Sign Up</Link>
-            </Button>
-            <Button variant="outline" size="icon" asChild>
-              <Link to="/profile">
-                <User className="h-4 w-4" />
-              </Link>
-            </Button>
+
+            {/* Auth Section */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden md:inline">{user.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={user.role === 'client' ? '/client-dashboard' : '/hustler-dashboard'}>
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/login">Login</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/signup">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </nav>
         </div>
       </div>
@@ -106,6 +172,45 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
+              
+              {/* Mobile Auth Links */}
+              {!user ? (
+                <>
+                  <Link
+                    to="/login"
+                    className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/profile"
+                    className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline text-left"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
             </nav>
           </div>
         </div>

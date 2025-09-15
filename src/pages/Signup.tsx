@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Briefcase, Mail, Lock, User, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +21,7 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signup } = useAuth();
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -39,9 +41,8 @@ const Signup = () => {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await signup(formData);
       toast({
         title: "Account created successfully!",
         description: `Welcome to JuaHustle, ${formData.name}!`,
@@ -53,7 +54,15 @@ const Signup = () => {
       } else {
         navigate("/hustler-dashboard");
       }
-    }, 1000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create account. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
