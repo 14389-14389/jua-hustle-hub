@@ -16,6 +16,7 @@ import { MapPin, Clock, DollarSign, User, Send, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { applicationsAPI, type Job } from '@/services/api';
+import { getCurrencyPlaceholder } from '@/lib/utils';
 
 interface JobApplicationModalProps {
   job: Job | null;
@@ -183,7 +184,7 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
               <Label htmlFor="proposedBudget">Your Budget (Optional)</Label>
               <Input
                 id="proposedBudget"
-                placeholder={`e.g., ${job.budget}`}
+                placeholder={getCurrencyPlaceholder(job.budget)}
                 value={applicationData.proposedBudget}
                 onChange={(e) => handleInputChange('proposedBudget', e.target.value)}
               />

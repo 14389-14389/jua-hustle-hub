@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Eye, Users, Clock, CheckCircle, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrencyPlaceholder } from "@/lib/utils";
 
 const mockClientJobs = [
   {
@@ -153,7 +154,7 @@ const ClientDashboard = () => {
                 <Label htmlFor="budget">Budget</Label>
                 <Input
                   id="budget"
-                  placeholder="e.g., KSh 5,000"
+                  placeholder={getCurrencyPlaceholder(5000)}
                   value={newJob.budget}
                   onChange={(e) => handleInputChange("budget", e.target.value)}
                   required
