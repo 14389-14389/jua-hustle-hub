@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, Clock, DollarSign, Filter } from "lucide-react";
+import { Search, MapPin, Clock, DollarSign, Filter, Send } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
+import { jobsAPI, applicationsAPI, type Job, type JobApplication } from "@/services/api";
+import JobApplicationModal from "@/components/JobApplicationModal";
 
 const mockJobs = [
   {
@@ -70,6 +74,39 @@ const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
+  const [appliedJobs, setAppliedJobs] = useState<JobApplication[]>([]);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+  
+  const { user } = useAuth();
+
+  const handleApply = (jobId: number) => {
+    // Find the job from mock data and convert to Job type
+    const mockJob = mockJobs.find(j => j.id === jobId);
+    if (mockJob) {
+      const job: Job = {
+        id: mockJob.id.toString(),
+        title: mockJob.title,
+        description: mockJob.description,
+        category: mockJob.category,
+        budget: mockJob.budget,
+        location: mockJob.location,
+        status: 'open',
+        clientId: 'mock-client',
+        clientName: 'Mock Client',
+        postedDate: new Date().toISOString().split('T')[0],
+        applicantCount: mockJob.applicants
+      };
+      setSelectedJob(job);
+      setIsApplicationModalOpen(true);
+    }
+  };
+
+  const handleApplicationSubmitted = () => {
+    // Refresh applied jobs or update state as needed
+    setIsApplicationModalOpen(false);
+    setSelectedJob(null);
+  };
 
   const filteredJobs = mockJobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -165,10 +202,10 @@ const Jobs = () => {
                 <Button 
                   onClick={() => handleApply(job.id)}
                   className="shadow-glow"
-                  disabled={appliedJobs.some(app => app.id === job.id)}
+                  disabled={appliedJobs.some(app => app.jobId === job.id.toString())}
                 >
                   <Send className="h-3 w-3 mr-1" />
-                  {appliedJobs.some(app => app.id === job.id) ? 'Applied' : 'Apply'}
+                  {appliedJobs.some(app => app.jobId === job.id.toString()) ? 'Applied' : 'Apply'}
                 </Button>
                 </div>
               </div>
@@ -190,6 +227,13 @@ const Jobs = () => {
           </Button>
         </div>
       )}
+
+      <JobApplicationModal
+        job={selectedJob}
+        isOpen={isApplicationModalOpen}
+        onClose={() => setIsApplicationModalOpen(false)}
+        onApplicationSubmitted={handleApplicationSubmitted}
+      />
     </div>
   );
 };
